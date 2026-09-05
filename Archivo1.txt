@@ -1,2 +1,4 @@
 Chanchito feliz :D
 Chanchito triste :C
+Nueva funcion para la version 1.1.0
+Cambio realizado directamente en master
