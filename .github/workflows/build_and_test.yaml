@@ -33,4 +33,5 @@ jobs:
       - name: Test with pytest
         run: pytest test_prueba.py # Ejecuta las pruebas en la raíz del proyecto
 
-
+      - name: Lint code with Ruff
+        run: ruff check . # Ejecuta el análisis de código con Ruff
