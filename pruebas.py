@@ -12,5 +12,7 @@ def es_par(numero: int) -> bool:
 
 
 def saludar(nombre: str) -> str:
-    """Construye un saludo para la persona indicada."""
+    """Construye un saludo para la persona adecuada."""
     return f"Hola, {nombre}!"
+
+#prueba de branch protection
