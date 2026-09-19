@@ -15,4 +15,5 @@ def saludar(nombre: str) -> str:
     """Construye un saludo para la persona adecuada."""
     return f"Hola, {nombre}!"
 
-#prueba de branch protection
+#prueba de branch test/verificar-branchprotection # 1
+#prueba de branch test/verificar-branchprotection # 2
