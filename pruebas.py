@@ -1,19 +1,6 @@
-"""Funciones sencillas del proyecto para validar mediante pruebas automatizadas."""
+class Calculator:
+    def sumar(self, a: int, b: int) -> int:
+        return a + b
 
-
-def sumar(primer_numero: float, segundo_numero: float) -> float:
-    """Devuelve la suma de dos numeros."""
-    return primer_numero + segundo_numero
-
-
-def es_par(numero: int) -> bool:
-    """Indica si un numero entero es par."""
-    return numero % 2 == 0
-
-
-def saludar(nombre: str) -> str:
-    """Construye un saludo para la persona adecuada."""
-    return f"Hola, {nombre}!"
-
-#prueba de branch test/verificar-branchprotection # 1
-#prueba de branch test/verificar-branchprotection # 2
+    def resta(self, a: int, b: int) -> int:
+        return a - b
