@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Comando por defecto al ejecutar el contenedor
-CMD ["python", "pruebas.py"]
+CMD ["python", "-m", "http.server", "10000"]
