@@ -2,33 +2,80 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Miweb - Asistente Virtual</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Miweb - Dashboard</title>
+  <!-- SDK oficial de ConfigCat para JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/configcat-js@latest/dist/configcat.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #1a1a1a;
+      --card-bg: #f3f4f6;
+    }
+    body.dark-mode {
+      --bg-color: #121212;
+      --text-color: #f3f4f6;
+      --card-bg: #1f2937;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 50px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    #theme-btn {
+      display: none; /* Oculto por defecto hasta consultar ConfigCat */
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: 1px solid #888;
+      background: #0070f3;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <h1>Miweb</h1>
-      <p>Sistema web con asistente virtual integrado</p>
-    </header>
-
-    <main>
-      <section class="card">
-        <h2>Descripción del Proyecto</h2>
-        <p>Plataforma para comunicación interactiva mediante chatbot y flujo de trabajo colaborativo profesional.</p>
-      </section>
-
-      <section class="card">
-        <h2>Funcionalidades</h2>
-        <ul>
-          <li>Comunicación interactiva mediante chatbot.</li>
-          <li>Flujo de trabajo colaborativo profesional.</li>
-          <li>Soporte de temas visuales (Modo Claro / Modo Oscuro).</li>
-        </ul>
-      </section>
-    </main>
+  <h1>Miweb - Sistema Integrado</h1>
+  <div class="card">
+    <p>Estado del servicio: <strong>Operativo en Render</strong></p>
+    <button id="theme-btn">🌓 Alternar Modo Claro / Oscuro</button>
   </div>
-  <script src="app.js"></script>
+
+  <script>
+    // PEGA AQUÍ TU SDK KEY DE CONFIGCAT:
+    const CONFIGCAT_SDK_KEY = "configcat-sdk-1/iyHfCOvfdkKL7oE2DBgplw/BSarIVyh2ESNfMSqXuob0w";
+
+    // Inicializamos el cliente de ConfigCat
+    const client = configcat.getClient(CONFIGCAT_SDK_KEY);
+
+    // Recuperar preferencia previa guardada (Ticket 3)
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
+
+    // Consultamos el Feature Flag 'dark_mode_enabled'
+    client.getValueAsync("dark_mode_enabled", false)
+      .then(isEnabled => {
+        const btn = document.getElementById("theme-btn");
+        if (isEnabled) {
+          btn.style.display = "inline-block";
+          btn.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const activeTheme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+            localStorage.setItem("theme", activeTheme);
+          });
+        }
+      });
+  </script>
 </body>
 </html>
