@@ -884,6 +884,9 @@
           const activeTheme = document.body.classList.contains("dark-mode") ? "dark" : "light";
           localStorage.setItem("theme", activeTheme);
         });
+      } else {
+        if (btn) btn.style.display = "none";
+        document.body.classList.remove("dark-mode");
       }
     });
 
