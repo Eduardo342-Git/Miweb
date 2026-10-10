@@ -2,80 +2,949 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Miweb - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miweb - Cloud Store & Pagos Express</title>
+  <meta name="description" content="Demostración de Continuous Deployment y Feature Flagging con ConfigCat en Render">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- SDK oficial de ConfigCat para JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/configcat-js@latest/dist/configcat.min.js"></script>
   <style>
     :root {
-      --bg-color: #ffffff;
-      --text-color: #1a1a1a;
-      --card-bg: #f3f4f6;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary-blue: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent-express: #ea580c;
+      --accent-express-hover: #c2410c;
+      --badge-bg: #e2e8f0;
+      --badge-text: #334155;
+      --success-bg: #f0fdf4;
+      --success-border: #22c55e;
+      --success-text: #166534;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-express: 0 8px 24px rgba(234, 88, 12, 0.18);
     }
+
     body.dark-mode {
-      --bg-color: #121212;
-      --text-color: #f3f4f6;
-      --card-bg: #1f2937;
+      --bg-page: #090d16;
+      --bg-card: #131b2e;
+      --bg-card-subtle: #1e293b;
+      --border-color: #27354f;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary-blue: #3b82f6;
+      --primary-hover: #60a5fa;
+      --accent-express: #f97316;
+      --accent-express-hover: #fb923c;
+      --badge-bg: #1e293b;
+      --badge-text: #cbd5e1;
+      --success-bg: rgba(34, 197, 94, 0.12);
+      --success-border: #22c55e;
+      --success-text: #4ade80;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+      --shadow-express: 0 8px 28px rgba(249, 115, 22, 0.22);
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 50px;
-      transition: background-color 0.3s, color 0.3s;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      line-height: 1.5;
     }
-    .card {
-      background: var(--card-bg);
-      padding: 24px;
-      border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+    /* Barra Superior / Header */
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
     }
+
+    .header-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary-blue), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Botón de Modo Oscuro condicionado a Feature Toggle 'dark_mode_enabled' */
     #theme-btn {
       display: none; /* Oculto por defecto hasta consultar ConfigCat */
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-weight: 600;
       cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    #theme-btn:hover {
+      background: var(--primary-blue);
+      color: #ffffff;
+      border-color: var(--primary-blue);
+      transform: translateY(-1px);
+    }
+
+    /* Contenedor Principal */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 60px 20px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Módulo de Diagnóstico y Telemetría de Flags */
+    .status-dashboard {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .status-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .status-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+
+    .status-pill {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+    }
+
+    .status-pill-label {
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+    }
+
+    .status-pill-value {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-success {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .badge-off {
+      background: var(--badge-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .badge-loading {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary-blue);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* Layout Principal: 2 Columnas (Checkout vs Resumen) */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .checkout-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ============================================================ */
+    /* COMPONENTE: PAGOS EXPRESS (Condicionado a pagos-express-v1) */
+    /* ============================================================ */
+    #express-checkout-card {
+      display: none; /* CRÍTICO: Oculto del DOM por defecto (OFF) */
+      background: var(--bg-card);
+      border: 2px solid var(--accent-express);
+      border-radius: 14px;
+      padding: 26px;
+      position: relative;
+      box-shadow: var(--shadow-express);
+      animation: fadeInExpress 0.4s ease-out;
+    }
+
+    @keyframes fadeInExpress {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .express-tag {
+      position: absolute;
+      top: -12px;
+      left: 24px;
+      background: linear-gradient(135deg, #ea580c, #f59e0b);
+      color: #ffffff;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.4);
+    }
+
+    .express-header {
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+
+    .express-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .express-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .express-wallet-box {
+      background: var(--bg-card-subtle);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .wallet-card-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .wallet-icon {
+      font-size: 1.25rem;
+    }
+
+    .btn-express {
+      width: 100%;
+      background: linear-gradient(135deg, #ea580c, #d97706);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-express:hover:not(:disabled) {
+      background: linear-gradient(135deg, #c2410c, #b45309);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+    }
+
+    .btn-express:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Micro-animación de carga */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Alerta visual de éxito en verde */
+    .express-success-alert {
+      display: none;
+      margin-top: 18px;
+      background: var(--success-bg);
+      border: 2px solid var(--success-border);
+      border-radius: 10px;
+      padding: 16px;
+      animation: alertPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes alertPop {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .alert-main-text {
+      color: var(--success-text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .telemetry-detail {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(34, 197, 94, 0.25);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .telemetry-detail span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-reset-demo {
+      margin-top: 12px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
       border-radius: 6px;
-      border: 1px solid #888;
-      background: #0070f3;
-      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset-demo:hover {
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+    }
+
+    /* ============================================================ */
+    /* COMPONENTE: CHECKOUT TRADICIONAL ESTÁNDAR */
+    /* ============================================================ */
+    .standard-checkout-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 26px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-heading {
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-card-subtle);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-standard {
+      width: 100%;
+      background: var(--primary-blue);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn-standard:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================================ */
+    /* COLUMNA DERECHA: RESUMEN DE ORDEN & CONTEXTO SPRINT REVIEW   */
+    /* ============================================================ */
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .product-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+
+    .product-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-name {
+      font-weight: 600;
+    }
+
+    .product-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .product-price {
+      font-weight: 700;
+    }
+
+    .summary-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 16px 0;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .total-amount {
+      color: var(--primary-blue);
+      font-size: 1.35rem;
+    }
+
+    /* Caja de contexto del Sprint Review (Taller 6) */
+    .review-guide-card {
+      margin-top: 24px;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 0.82rem;
+    }
+
+    .review-guide-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .review-guide-list {
+      padding-left: 18px;
+      color: var(--text-muted);
+    }
+
+    .review-guide-list li {
+      margin-bottom: 6px;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-color);
+      padding: 20px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg-card);
     }
   </style>
 </head>
 <body>
-  <h1>Miweb - Sistema Integrado</h1>
-  <div class="card">
-    <p>Estado del servicio: <strong>Operativo en Render</strong></p>
-    <button id="theme-btn">🌓 Alternar Modo Claro / Oscuro</button>
-  </div>
+  <!-- Header / Barra de Navegación -->
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">M</div>
+        <div>
+          <div class="brand-title">Miweb Cloud Platform</div>
+          <div class="brand-subtitle">Trunk-Based Continuous Deployment</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Botón preservado del Taller 5 (controlado por dark_mode_enabled) -->
+        <button id="theme-btn" aria-label="Cambiar tema">🌓 Alternar Modo Claro / Oscuro</button>
+      </div>
+    </div>
+  </header>
 
+  <main class="container">
+    <!-- Módulo de Telemetría y Estado de los Feature Flags en Vivo -->
+    <section class="status-dashboard" aria-label="Estado del Sistema">
+      <div class="status-header">
+        <div class="status-title">
+          <span class="status-indicator"></span>
+          <span>Estado del Servicio: <strong>Operativo en Render</strong></span>
+        </div>
+        <div>
+          <span class="badge badge-success">Producción • Port 10000</span>
+        </div>
+      </div>
+      <div class="status-meta-grid">
+        <div class="status-pill">
+          <div class="status-pill-label">Despliegue Continuo (CD)</div>
+          <div class="status-pill-value">GitHub Actions &rarr; Render</div>
+        </div>
+        <div class="status-pill">
+          <div class="status-pill-label">Feature Flag: dark_mode_enabled</div>
+          <div class="status-pill-value" id="flag-dark-status">
+            <span class="badge badge-loading">Consultando...</span>
+          </div>
+        </div>
+        <div class="status-pill">
+          <div class="status-pill-label">Feature Flag: pagos-express-v1</div>
+          <div class="status-pill-value" id="flag-express-status">
+            <span class="badge badge-loading">Consultando...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="checkout-grid">
+      <!-- Columna Izquierda: Flujo de Checkout -->
+      <div class="checkout-flow">
+        
+        <!-- COMPONENTE: PAGOS EXPRESS (Feature Toggle: 'pagos-express-v1') -->
+        <!-- REGLA DE NEGOCIO: Oculto por defecto (display: none). Se expone únicamente si el flag es ON -->
+        <section id="express-checkout-card" aria-label="Pagos Express">
+          <div class="express-tag">⚡ Fast Track • 1 Clic</div>
+          <div class="express-header">
+            <h2 class="express-title">⚡ Pagos Express con un solo clic</h2>
+            <p class="express-desc">
+              Tecnología de pago acelerado con tokenización segura y biometría. Omite los formularios convencionales.
+            </p>
+          </div>
+
+          <div class="express-wallet-box">
+            <div class="wallet-card-info">
+              <span class="wallet-icon">💳</span>
+              <div>
+                <div>Visa Signature predeterminada (•••• 4242)</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Billetera verificada • Token Cloud Vault</div>
+              </div>
+            </div>
+            <span class="badge badge-success">Listo</span>
+          </div>
+
+          <!-- Botón de Llamada a la Acción (CTA) -->
+          <button id="btn-express-pay" class="btn-express" type="button">
+            <span>⚡ Pagar con 1 Clic</span>
+          </button>
+
+          <!-- Simulación interactiva con alerta visual de éxito y telemetría -->
+          <div id="express-success-box" class="express-success-alert" role="status" aria-live="polite">
+            <div class="alert-main-text">
+              <span>✅ Transacción completada en 1 clic. Simulación de telemetría: Latencia 180ms, HTTP 200 OK</span>
+            </div>
+            <div class="telemetry-detail">
+              <span><strong>Estado:</strong> 200 OK</span>
+              <span><strong>Latencia:</strong> 180ms</span>
+              <span><strong>ID Transacción:</strong> <code id="express-tx-id">TX-EXPRESS-9281</code></span>
+              <span><strong>Método:</strong> Direct FastTrack Token</span>
+            </div>
+            <button id="btn-reset-express" class="btn-reset-demo" type="button">Restablecer simulación para demo</button>
+          </div>
+        </section>
+
+        <!-- COMPONENTE: CHECKOUT TRADICIONAL ESTÁNDAR (Siempre visible) -->
+        <section class="standard-checkout-card" aria-label="Checkout Estándar">
+          <div class="card-heading">
+            <h2 class="card-title">💳 Checkout Tradicional</h2>
+            <p class="card-sub">Formulario estándar en 3 pasos con validación manual de credenciales.</p>
+          </div>
+
+          <form id="standard-checkout-form" onsubmit="event.preventDefault(); alert('Flujo Estándar: Procediendo con validación bancaria convencional...');">
+            <div class="form-group">
+              <label class="form-label" for="cardholder-name">Nombre del Titular</label>
+              <input type="text" id="cardholder-name" class="form-input" placeholder="Eduardo Mendoza" value="Eduardo Mendoza" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="card-number">Número de Tarjeta de Crédito</label>
+              <input type="text" id="card-number" class="form-input" placeholder="4532 •••• •••• 8821" value="4532 9012 3456 8821" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="card-expiry">Expiración</label>
+                <input type="text" id="card-expiry" class="form-input" placeholder="MM/AA" value="12/28" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="card-cvv">Código de Seguridad (CVV)</label>
+                <input type="password" id="card-cvv" class="form-input" placeholder="•••" value="892" maxlength="4" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-standard">
+              Proceder con Pago Estándar ($49.00 USD)
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Columna Derecha: Resumen del Pedido y Guía del Sprint Review -->
+      <aside>
+        <div class="summary-card">
+          <h3 class="summary-title">Resumen del Pedido</h3>
+          <div class="product-row">
+            <div class="product-details">
+              <span class="product-name">Plan Cloud Pro Anual</span>
+              <span class="product-desc">Licencia de infraestructura y CD</span>
+            </div>
+            <span class="product-price">$49.00</span>
+          </div>
+          <div class="product-row">
+            <div class="product-details">
+              <span class="product-name">Despliegues Render Ilimitados</span>
+              <span class="product-desc">Health checks automáticos</span>
+            </div>
+            <span class="product-price">$0.00</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="total-row">
+            <span>Total a Pagar</span>
+            <span class="total-amount">$49.00 USD</span>
+          </div>
+        </div>
+
+        <div class="review-guide-card">
+          <div class="review-guide-title">
+            <span>📋</span> Protocolo de Liberación Segura (Taller 6)
+          </div>
+          <ul class="review-guide-list">
+            <li><strong>Desacoplamiento:</strong> Desplegar a producción ya no significa liberar a los usuarios.</li>
+            <li><strong>Rollback en milisegundos:</strong> Si hay fallas, el toggle se apaga en ConfigCat sin redeploy.</li>
+            <li><strong>Validación de Valor:</strong> Permite validar telemetría y conversión de Pagos Express de forma controlada.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Eduardo342-Git/Miweb • Desplegado en Render Web Service • ConfigCat Feature Flagging</p>
+  </footer>
+
+  <!-- LÓGICA DE CLIENTE Y EVALUACIÓN DE FEATURE FLAGS -->
   <script>
-    // PEGA AQUÍ TU SDK KEY DE CONFIGCAT:
+    // SDK Key oficial de ConfigCat provista para el proyecto
     const CONFIGCAT_SDK_KEY = "configcat-sdk-1/iyHfCOvfdkKL7oE2DBgplw/BSarIVyh2ESNfMSqXuob0w";
 
-    // Inicializamos el cliente de ConfigCat
-    const client = configcat.getClient(CONFIGCAT_SDK_KEY);
-
-    // Recuperar preferencia previa guardada (Ticket 3)
+    // 1. Restaurar preferencia local de tema (Ticket 3 - Taller 5)
     if (localStorage.getItem("theme") === "dark") {
       document.body.classList.add("dark-mode");
     }
 
-    // Consultamos el Feature Flag 'dark_mode_enabled'
-    client.getValueAsync("dark_mode_enabled", false)
-      .then(isEnabled => {
-        const btn = document.getElementById("theme-btn");
-        if (isEnabled) {
-          btn.style.display = "inline-block";
-          btn.addEventListener("click", () => {
-            document.body.classList.toggle("dark-mode");
-            const activeTheme = document.body.classList.contains("dark-mode") ? "dark" : "light";
-            localStorage.setItem("theme", activeTheme);
-          });
-        }
+    // 2. Inicialización resiliente del cliente de ConfigCat
+    let client = null;
+    try {
+      if (typeof configcat !== "undefined") {
+        client = configcat.getClient(CONFIGCAT_SDK_KEY);
+      } else {
+        console.warn("ConfigCat SDK no detectado globalmente; se usará fallback seguro.");
+      }
+    } catch (err) {
+      console.error("Error inicializando cliente ConfigCat:", err);
+    }
+
+    // Helper para consulta asíncrona segura con valor por defecto
+    function getFlagValue(flagKey, defaultValue) {
+      if (!client) return Promise.resolve(defaultValue);
+      return client.getValueAsync(flagKey, defaultValue).catch(err => {
+        console.warn(`Error al consultar flag '${flagKey}', usando valor por defecto:`, err);
+        return defaultValue;
       });
+    }
+
+    // 3. Consulta asíncrona del flag 'dark_mode_enabled' (Taller 5)
+    getFlagValue("dark_mode_enabled", false).then(isEnabled => {
+      const btn = document.getElementById("theme-btn");
+      const statusBadge = document.getElementById("flag-dark-status");
+
+      if (statusBadge) {
+        statusBadge.innerHTML = isEnabled 
+          ? '<span class="badge badge-success">ON (Habilitado)</span>' 
+          : '<span class="badge badge-off">OFF (Inactivo)</span>';
+      }
+
+      if (isEnabled && btn) {
+        btn.style.display = "inline-block";
+        btn.addEventListener("click", () => {
+          document.body.classList.toggle("dark-mode");
+          const activeTheme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+          localStorage.setItem("theme", activeTheme);
+        });
+      }
+    });
+
+    // 4. Consulta asíncrona del flag 'pagos-express-v1' (Taller 6 - Caso Práctico)
+    getFlagValue("pagos-express-v1", false).then(isEnabled => {
+      const expressCard = document.getElementById("express-checkout-card");
+      const statusBadge = document.getElementById("flag-express-status");
+
+      if (statusBadge) {
+        statusBadge.innerHTML = isEnabled 
+          ? '<span class="badge badge-success">ON (Expuesto)</span>' 
+          : '<span class="badge badge-off">OFF (Oculto)</span>';
+      }
+
+      // REGLA: Si el toggle está en ON se expone visualmente; si está en OFF permanece en display: none
+      if (isEnabled && expressCard) {
+        expressCard.style.display = "block";
+      } else if (expressCard) {
+        expressCard.style.display = "none";
+      }
+    });
+
+    // 5. Simulación interactiva de la demo de Pagos Express (Micro-animación y Telemetría)
+    const btnExpress = document.getElementById("btn-express-pay");
+    const successBox = document.getElementById("express-success-box");
+    const resetBtn = document.getElementById("btn-reset-express");
+    const txIdElem = document.getElementById("express-tx-id");
+
+    if (btnExpress) {
+      btnExpress.addEventListener("click", () => {
+        // Estado de carga con micro-animación
+        btnExpress.disabled = true;
+        btnExpress.innerHTML = '<span class="spinner"></span> Procesando pago seguro...';
+
+        if (successBox) successBox.style.display = "none";
+
+        // Simulación de latencia de red (aprox. 850ms)
+        setTimeout(() => {
+          // Restaurar botón
+          btnExpress.disabled = false;
+          btnExpress.innerHTML = '<span>⚡ Pagar con 1 Clic</span>';
+
+          // Generar ID de transacción aleatorio para la simulación
+          if (txIdElem) {
+            txIdElem.textContent = "TX-" + Math.floor(100000 + Math.random() * 900000);
+          }
+
+          // Mostrar alerta de éxito visual en verde requerida
+          if (successBox) {
+            successBox.style.display = "block";
+          }
+        }, 850);
+      });
+    }
+
+    // Botón para reiniciar la simulación durante el Sprint Review
+    if (resetBtn && successBox) {
+      resetBtn.addEventListener("click", () => {
+        successBox.style.display = "none";
+      });
+    }
   </script>
 </body>
 </html>
